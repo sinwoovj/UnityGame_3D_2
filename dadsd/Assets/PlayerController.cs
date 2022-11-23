@@ -16,51 +16,48 @@ public class PlayerController : MonoBehaviour
 
     private CharacterController characterController;
 
-    private float jumpPower;
-    private float gravity;
-    private Vector3 moveDir;
+    private bool canDJ;
+    [SerializeField] private float JumpPower;
+    [SerializeField] private float gravity = 1f;
+    [SerializeField] private float gravImpulse;
+    private Vector3 vec;
 
-    private int canJumpCount;
+
     // Start is called before the first frame update
     void Start()
     {
-        canJumpCount = 2;
-        gravity= -9.8f;
-        moveDir = Vector3.zero;
-        jumpPower = 7.0f;
+        characterController = GetComponent<CharacterController>();
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
         anim = GetComponent<Animator>();
-        characterController = GetComponent<CharacterController>(); 
+        vec = new Vector3(0, 0, 0);
     }
 
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(moveDir.y);
+        
         CharacterRotation();
         CameraRotate();
         CharacterAnimation();
         Jump();
-        characterController.Move(moveDir * Time.deltaTime);
     }
     private void Jump()
     {
-        if (IsCheckGrounded()) canJumpCount = 2;
-        if (IsCheckGrounded() && Input.GetButtonDown("Jump"))
+        Debug.Log(characterController.isGrounded);
+        if (IsCheckGrounded())
         {
-            canJumpCount--;
-            moveDir.y = jumpPower;
-
-        }
-        else if(!IsCheckGrounded() && Input.GetButtonDown("Jump") && canJumpCount == 1)
-        {
-            canJumpCount--;
-            moveDir.y = 10f;
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                gravImpulse = JumpPower;
+            }
         }
         else
         {
-            moveDir.y += gravity * Time.deltaTime;
+            gravImpulse -= gravity;
         }
-
+        vec.y = gravImpulse;
+        characterController.Move(vec * Time.deltaTime);
     }
     private void CharacterAnimation()
     {
@@ -88,7 +85,6 @@ public class PlayerController : MonoBehaviour
     }
     private bool IsCheckGrounded()
     {
-        
         // CharacterController.IsGrounded가 true라면 Raycast를 사용하지 않고 판정 종료
         if (characterController.isGrounded) return true;
         // 발사하는 광선의 초기 위치와 방향
